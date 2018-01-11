@@ -1,5 +1,6 @@
 require "bundler/setup"
 require "db_sanitiser"
+require 'active_record'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -12,3 +13,5 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
