@@ -1,6 +1,7 @@
 require "bundler/setup"
 require "db_sanitiser"
 require 'active_record'
+require 'database_cleaner'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -17,5 +18,10 @@ RSpec.configure do |config|
     ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
     ActiveRecord::Schema.verbose = false
     require_relative 'db/schema'
+    DatabaseCleaner.strategy = :truncation
+  end
+
+  config.before(:each) do
+    DatabaseCleaner.clean
   end
 end
