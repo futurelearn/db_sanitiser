@@ -31,7 +31,9 @@ module DbSanitiser
       update_values = @columns_to_sanitise.to_a.map do |(key, value)|
         "`#{key}` = #{value}"
       end
-      active_record_class.update_all(update_values.join(', '))
+      scope = active_record_class
+      scope = scope.where(@where_query) if @where_query
+      scope.update_all(update_values.join(', '))
     end
 
     def string(value)
@@ -40,6 +42,10 @@ module DbSanitiser
 
     def sanitise(name, sanitised_value)
       @columns_to_sanitise[name] = sanitised_value
+    end
+
+    def where(query)
+      @where_query = query
     end
 
     private
