@@ -8,7 +8,15 @@ RSpec.describe DbSanitiser::Runner do
   end
 
   describe 'sanitising tables' do
-    it 'can sanitise multiple tables'
+    it 'can sanitise multiple tables' do
+      user = User.create!(name: 'Fred Flintstone', email: 'fred.flintstone@flintstones.com')
+      user_id = user.id
+      hobby = Hobby.create(user_id: user_id, hobby: 'Saying yabba dabba doo')
+      hobby_id = hobby.id
+      described_class.new(fixture_file('all_sanitised.rb')).sanitise
+      expect(User.first.attributes).to eq("id" => user_id + 1000, "name" => 'Barney Rubble', "email" => 'barney.rubble@flintstones.com')
+      expect(Hobby.first.attributes).to eq("id" => user_id + 1000, "user_id" => hobby_id + 1000, "hobby" => 'surfing')
+    end
     it 'can sanitise a table depending on a query'
     it 'can sanitise the same table multiple times'
   end
