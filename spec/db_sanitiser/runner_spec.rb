@@ -50,7 +50,12 @@ RSpec.describe DbSanitiser::Runner do
   end
 
   describe 'validating the schema' do
-    it 'raises an error if there is an unknown column in the table'
+    it 'raises an error if there is an unknown column in the table being sanitised' do
+      expect {
+        described_class.new(fixture_file('missing_column.rb')).sanitise
+      }.to raise_error(RuntimeError, /Missing columns for users: \["name", "email"\]/)
+    end
+
     it "allows columns to be ignore if they shouldn't be sanitised"
     it "raises an error if there is an ignored column that doesn't exist"
   end

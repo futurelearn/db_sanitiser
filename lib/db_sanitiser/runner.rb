@@ -33,6 +33,7 @@ module DbSanitiser
     def _run
       instance_eval(&@block)
 
+      validate_columns_are_accounted_for(@columns_to_sanitise.keys)
       update_values = @columns_to_sanitise.to_a.map do |(key, value)|
         "`#{key}` = #{value}"
       end
@@ -58,6 +59,13 @@ module DbSanitiser
     def active_record_class
       table_name = @table_name
       @ar_class ||= Class.new(ActiveRecord::Base) { self.table_name = table_name }
+    end
+
+    def validate_columns_are_accounted_for(columns)
+      columns_not_accounted_for = active_record_class.column_names - columns
+      unless columns_not_accounted_for.empty?
+        fail "Missing columns for #{@table_name}: #{columns_not_accounted_for.inspect}"
+      end
     end
   end
 
