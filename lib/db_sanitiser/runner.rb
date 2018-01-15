@@ -28,12 +28,13 @@ module DbSanitiser
       @table_name = table_name
       @block = block
       @columns_to_sanitise = {}
+      @columns_to_ignore = []
     end
 
     def _run
       instance_eval(&@block)
 
-      validate_columns_are_accounted_for(@columns_to_sanitise.keys)
+      validate_columns_are_accounted_for(@columns_to_sanitise.keys + @columns_to_ignore)
       update_values = @columns_to_sanitise.to_a.map do |(key, value)|
         "`#{key}` = #{value}"
       end
@@ -52,6 +53,10 @@ module DbSanitiser
 
     def where(query)
       @where_query = query
+    end
+
+    def ignore(*columns)
+      @columns_to_ignore += columns
     end
 
     private

@@ -56,7 +56,11 @@ RSpec.describe DbSanitiser::Runner do
       }.to raise_error(RuntimeError, /Missing columns for users: \["name", "email"\]/)
     end
 
-    it "allows columns to be ignore if they shouldn't be sanitised"
+    it "allows columns to be ignored if they shouldn't be sanitised" do
+      expect {
+        described_class.new(fixture_file('ignored_columns.rb')).sanitise
+      }.to_not raise_error
+    end
     it "raises an error if there is an ignored column that doesn't exist"
   end
 
