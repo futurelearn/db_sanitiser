@@ -61,7 +61,12 @@ RSpec.describe DbSanitiser::Runner do
         described_class.new(fixture_file('ignored_columns.rb')).sanitise
       }.to_not raise_error
     end
-    it "raises an error if there is an ignored column that doesn't exist"
+
+    it "raises an error if there is an ignored column that doesn't exist" do
+      expect {
+        described_class.new(fixture_file('unknown_columns.rb')).sanitise
+      }.to raise_error(RuntimeError, /Unknown columns for users: \["age"\]/)
+    end
   end
 
   def fixture_file(name)

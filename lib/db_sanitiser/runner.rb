@@ -71,6 +71,11 @@ module DbSanitiser
       unless columns_not_accounted_for.empty?
         fail "Missing columns for #{@table_name}: #{columns_not_accounted_for.inspect}"
       end
+
+      unknown_columns = columns - active_record_class.column_names
+      unless unknown_columns.empty?
+        fail "Unknown columns for #{@table_name}: #{unknown_columns.inspect}"
+      end
     end
   end
 
