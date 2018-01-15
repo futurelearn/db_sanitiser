@@ -38,7 +38,15 @@ RSpec.describe DbSanitiser::Runner do
   end
 
   describe 'deleting contents of tables' do
-    it 'deletes the contents of the table'
+    it 'deletes the contents of the table' do
+      user = User.create!(name: 'Fred Flintstone', email: 'fred.flintstone@flintstones.com')
+      hobby = Hobby.create(user_id: 1, hobby: 'Saying yabba dabba doo')
+
+      described_class.new(fixture_file('delete_all.rb')).sanitise
+
+      expect(User.count).to eq(0)
+      expect(Hobby.count).to eq(0)
+    end
   end
 
   describe 'validating the schema' do

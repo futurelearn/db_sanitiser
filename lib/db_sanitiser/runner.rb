@@ -16,6 +16,11 @@ module DbSanitiser
       dsl = SanitiseDsl.new(table_name, &block)
       dsl._run
     end
+
+    def delete_all(table_name)
+      dsl = DeleteAllDsl.new(table_name)
+      dsl._run
+    end
   end
 
   class SanitiseDsl
@@ -46,6 +51,23 @@ module DbSanitiser
 
     def where(query)
       @where_query = query
+    end
+
+    private
+
+    def active_record_class
+      table_name = @table_name
+      @ar_class ||= Class.new(ActiveRecord::Base) { self.table_name = table_name }
+    end
+  end
+
+  class DeleteAllDsl
+    def initialize(table_name)
+      @table_name = table_name
+    end
+
+    def _run
+      active_record_class.delete_all
     end
 
     private
