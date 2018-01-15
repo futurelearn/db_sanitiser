@@ -1,4 +1,6 @@
 module DbSanitiser
+  ACTIVERECORD_META_TABLES = %w(schema_migrations ar_internal_metadata)
+
   class Runner
     def initialize(file_name)
       @file_name = file_name
@@ -8,16 +10,32 @@ module DbSanitiser
       config = File.read(@file_name)
       dsl = RootDsl.new
       dsl.instance_eval(config)
+      validate_all_tables_accounted_for(dsl)
     end
+
+    def validate_all_tables_accounted_for(dsl)
+     processed_tables = dsl.instance_variable_get('@table_names').to_a
+     tables_in_db = ActiveRecord::Base.connection.tables
+     tables_not_accounted_for = tables_in_db - ACTIVERECORD_META_TABLES - processed_tables
+     unless tables_not_accounted_for.empty?
+       fail "Missing tables: #{tables_not_accounted_for.inspect}"
+     end
+   end
   end
 
   class RootDsl
+    def initialize
+      @table_names = Set.new
+    end
+
     def sanitise_table(table_name, &block)
+      @table_names.add(table_name)
       dsl = SanitiseDsl.new(table_name, &block)
       dsl._run
     end
 
     def delete_all(table_name)
+      @table_names.add(table_name)
       dsl = DeleteAllDsl.new(table_name)
       dsl._run
     end

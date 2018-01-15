@@ -67,6 +67,12 @@ RSpec.describe DbSanitiser::Runner do
         described_class.new(fixture_file('unknown_columns.rb')).sanitise
       }.to raise_error(RuntimeError, /Unknown columns for users: \["age"\]/)
     end
+
+    it "raises an error if some tables aren't either sanitised or deleted" do
+      expect {
+        described_class.new(fixture_file('no_tables.rb')).sanitise
+      }.to raise_error(RuntimeError, /Missing tables: \["users", "hobbies"\]/)
+    end
   end
 
   def fixture_file(name)
