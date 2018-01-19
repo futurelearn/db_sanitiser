@@ -26,25 +26,33 @@ The gem provides 3 methods that you can use, each of which take a config file as
 * `DbSanitiser.validate` - validate that all tables and columns are accounted for
 * `DbSanitiser.dry_run` - print what the results of sanitisation would be
 
-These methods can be integrated into an app using Rake tasks. In a Rails app, it
-is also recommended to make sure that you don't accidentally sanitise your
-production database:
+The DbSanitiser is off by default to prevent it being accidentally used in environments where it shouldn't. To turn it on when appropriate, run:
+
+```
+DbSanitiser.enable!
+```
+
+In a Rails app you can turn the DbSanitiser on in all environments other than production bt adding this to `config/intializers/enable_db_sanitiser.rb`:
+
+```
+unless Rails.env.production?
+  DbSanitiser.enable!
+end
+```
+
+The different tasks can be integrated into a Rails app using the following Rake tasks:
 
 ```
 namespace :db_sanitiser do
-  task environment_check: [:environment] do
-    fail "Sanitising in production is THE LAST THING WE WANT TO HAPPEN!" if Rails.env.production?
-  end
-
-  task validate: [:environment_check] do
+  task validate: [:environment] do
     DbSanitiser.validate(Rails.root.join('config/db_sanitiser.rb'))
   end
 
-  task sanitise: [:environment_check, :validate] do
+  task sanitise: [:environment, :validate] do
     DbSanitiser.sanitise(Rails.root.join('config/db_sanitiser.rb'))
   end
 
-  task dry_run: [:environment_check] do
+  task dry_run: [:environment] do
     DbSanitiser.dry_run(Rails.root.join('config/db_sanitiser.rb'), STDOUT)
   end
 end
