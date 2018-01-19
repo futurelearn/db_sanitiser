@@ -8,7 +8,7 @@ module DbSanitiser
 
     def sanitise
       config = File.read(@file_name)
-      dsl = RootDsl.new
+      dsl = RootDsl.new(SanitiseStrategy.new)
       dsl.instance_eval(config)
       validate_all_tables_accounted_for(dsl)
     end
@@ -23,21 +23,43 @@ module DbSanitiser
    end
   end
 
+  class SanitiseStrategy
+    def sanitise_table(table_name, columns_to_sanitise, where_query)
+      update_values = columns_to_sanitise.to_a.map do |(key, value)|
+        "`#{key}` = #{value}"
+      end
+      scope = active_record_class(table_name)
+      scope = scope.where(where_query) if where_query
+      scope.update_all(update_values.join(', '))
+    end
+
+    def delete_all(table_name)
+      active_record_class(table_name).delete_all
+    end
+
+    private
+
+    def active_record_class(table_name)
+      Class.new(ActiveRecord::Base) { self.table_name = table_name }
+    end
+  end
+
   class RootDsl
-    def initialize
+    def initialize(strategy)
+      @strategy = strategy
       @table_names = Set.new
     end
 
     def sanitise_table(table_name, &block)
       @table_names.add(table_name)
       dsl = SanitiseDsl.new(table_name, &block)
-      dsl._run
+      dsl._run(@strategy)
     end
 
     def delete_all(table_name)
       @table_names.add(table_name)
       dsl = DeleteAllDsl.new(table_name)
-      dsl._run
+      dsl._run(@strategy)
     end
   end
 
@@ -49,16 +71,11 @@ module DbSanitiser
       @columns_to_ignore = []
     end
 
-    def _run
+    def _run(strategy)
       instance_eval(&@block)
 
       validate_columns_are_accounted_for(@columns_to_sanitise.keys + @columns_to_ignore)
-      update_values = @columns_to_sanitise.to_a.map do |(key, value)|
-        "`#{key}` = #{value}"
-      end
-      scope = active_record_class
-      scope = scope.where(@where_query) if @where_query
-      scope.update_all(update_values.join(', '))
+      strategy.sanitise_table(@table_name, @columns_to_sanitise, @where_query)
     end
 
     def string(value)
@@ -102,15 +119,8 @@ module DbSanitiser
       @table_name = table_name
     end
 
-    def _run
-      active_record_class.delete_all
-    end
-
-    private
-
-    def active_record_class
-      table_name = @table_name
-      @ar_class ||= Class.new(ActiveRecord::Base) { self.table_name = table_name }
+    def _run(strategy)
+      strategy.delete_all(@table_name)
     end
   end
 end
