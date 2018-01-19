@@ -5,11 +5,11 @@ module DbSanitiser
     end
 
     def sanitise
-      run(SanitiseStrategy.new)
+      run(Strategies::SanitiseStrategy.new)
     end
 
     def validate
-      run(ValidateStrategy.new)
+      run(Strategies::ValidateStrategy.new)
     end
 
     private
@@ -22,66 +22,68 @@ module DbSanitiser
     end
   end
 
-  class SanitiseStrategy
-    def sanitise_table(table_name, columns_to_sanitise, where_query, ignored_columns)
-      update_values = columns_to_sanitise.to_a.map do |(key, value)|
-        "`#{key}` = #{value}"
+  module Strategies
+    class SanitiseStrategy
+      def sanitise_table(table_name, columns_to_sanitise, where_query, ignored_columns)
+        update_values = columns_to_sanitise.to_a.map do |(key, value)|
+          "`#{key}` = #{value}"
+        end
+        scope = active_record_class(table_name)
+        scope = scope.where(where_query) if where_query
+        scope.update_all(update_values.join(', '))
       end
-      scope = active_record_class(table_name)
-      scope = scope.where(where_query) if where_query
-      scope.update_all(update_values.join(', '))
-    end
 
-    def delete_all(table_name)
-      active_record_class(table_name).delete_all
-    end
+      def delete_all(table_name)
+        active_record_class(table_name).delete_all
+      end
 
-    def after_run(processed_tables)
-    end
+      def after_run(processed_tables)
+      end
 
-    private
+      private
 
-    def active_record_class(table_name)
-      Class.new(ActiveRecord::Base) { self.table_name = table_name }
-    end
-  end
-
-  class ValidateStrategy
-    ACTIVERECORD_META_TABLES = %w(schema_migrations ar_internal_metadata)
-
-    def sanitise_table(table_name, columns_to_sanitise, where_query, ignored_columns)
-      ar_class = active_record_class(table_name)
-      columns = columns_to_sanitise.keys + ignored_columns
-
-      validate_columns_are_accounted_for(ar_class, table_name, columns)
-    end
-
-    def delete_all(table_name)
-    end
-
-    def after_run(processed_tables)
-      tables_in_db = ActiveRecord::Base.connection.tables
-      tables_not_accounted_for = tables_in_db - ACTIVERECORD_META_TABLES - processed_tables
-      unless tables_not_accounted_for.empty?
-        fail "Missing tables: #{tables_not_accounted_for.inspect}"
+      def active_record_class(table_name)
+        Class.new(ActiveRecord::Base) { self.table_name = table_name }
       end
     end
 
-    private
+    class ValidateStrategy
+      ACTIVERECORD_META_TABLES = %w(schema_migrations ar_internal_metadata)
 
-    def active_record_class(table_name)
-      Class.new(ActiveRecord::Base) { self.table_name = table_name }
-    end
+      def sanitise_table(table_name, columns_to_sanitise, where_query, ignored_columns)
+        ar_class = active_record_class(table_name)
+        columns = columns_to_sanitise.keys + ignored_columns
 
-    def validate_columns_are_accounted_for(active_record_class, table_name, columns)
-      columns_not_accounted_for = active_record_class.column_names - columns
-      unless columns_not_accounted_for.empty?
-        fail "Missing columns for #{table_name}: #{columns_not_accounted_for.inspect}"
+        validate_columns_are_accounted_for(ar_class, table_name, columns)
       end
 
-      unknown_columns = columns - active_record_class.column_names
-      unless unknown_columns.empty?
-        fail "Unknown columns for #{table_name}: #{unknown_columns.inspect}"
+      def delete_all(table_name)
+      end
+
+      def after_run(processed_tables)
+        tables_in_db = ActiveRecord::Base.connection.tables
+        tables_not_accounted_for = tables_in_db - ACTIVERECORD_META_TABLES - processed_tables
+        unless tables_not_accounted_for.empty?
+          fail "Missing tables: #{tables_not_accounted_for.inspect}"
+        end
+      end
+
+      private
+
+      def active_record_class(table_name)
+        Class.new(ActiveRecord::Base) { self.table_name = table_name }
+      end
+
+      def validate_columns_are_accounted_for(active_record_class, table_name, columns)
+        columns_not_accounted_for = active_record_class.column_names - columns
+        unless columns_not_accounted_for.empty?
+          fail "Missing columns for #{table_name}: #{columns_not_accounted_for.inspect}"
+        end
+
+        unknown_columns = columns - active_record_class.column_names
+        unless unknown_columns.empty?
+          fail "Unknown columns for #{table_name}: #{unknown_columns.inspect}"
+        end
       end
     end
   end
