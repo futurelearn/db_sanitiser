@@ -49,12 +49,6 @@ RSpec.describe DbSanitiser::Runner do
         expect(Hobby.count).to eq(0)
       end
     end
-
-    it "raises an error if some tables aren't either sanitised or deleted" do
-      expect {
-        described_class.new(fixture_file('no_tables.rb')).sanitise
-      }.to raise_error(RuntimeError, /Missing tables: \["users", "hobbies"\]/)
-    end
   end
 
   describe 'validating the schema without sanitising' do

@@ -1,6 +1,4 @@
 module DbSanitiser
-  ACTIVERECORD_META_TABLES = %w(schema_migrations ar_internal_metadata)
-
   class Runner
     def initialize(file_name)
       @file_name = file_name
@@ -8,26 +6,19 @@ module DbSanitiser
 
     def sanitise
       config = File.read(@file_name)
-      dsl = RootDsl.new(SanitiseStrategy.new)
+      strategy = SanitiseStrategy.new
+      dsl = RootDsl.new(strategy)
       dsl.instance_eval(config)
-      validate_all_tables_accounted_for(dsl)
+      strategy.after_run(dsl.instance_variable_get('@table_names').to_a)
     end
 
     def validate
       config = File.read(@file_name)
-      dsl = RootDsl.new(ValidateStrategy.new)
+      strategy = ValidateStrategy.new
+      dsl = RootDsl.new(strategy)
       dsl.instance_eval(config)
-      validate_all_tables_accounted_for(dsl)
+      strategy.after_run(dsl.instance_variable_get('@table_names').to_a)
     end
-
-    def validate_all_tables_accounted_for(dsl)
-     processed_tables = dsl.instance_variable_get('@table_names').to_a
-     tables_in_db = ActiveRecord::Base.connection.tables
-     tables_not_accounted_for = tables_in_db - ACTIVERECORD_META_TABLES - processed_tables
-     unless tables_not_accounted_for.empty?
-       fail "Missing tables: #{tables_not_accounted_for.inspect}"
-     end
-   end
   end
 
   class SanitiseStrategy
@@ -44,6 +35,9 @@ module DbSanitiser
       active_record_class(table_name).delete_all
     end
 
+    def after_run(processed_tables)
+    end
+
     private
 
     def active_record_class(table_name)
@@ -52,6 +46,8 @@ module DbSanitiser
   end
 
   class ValidateStrategy
+    ACTIVERECORD_META_TABLES = %w(schema_migrations ar_internal_metadata)
+
     def sanitise_table(table_name, columns_to_sanitise, where_query, ignored_columns)
       ar_class = active_record_class(table_name)
       columns = columns_to_sanitise.keys + ignored_columns
@@ -60,6 +56,14 @@ module DbSanitiser
     end
 
     def delete_all(table_name)
+    end
+
+    def after_run(processed_tables)
+      tables_in_db = ActiveRecord::Base.connection.tables
+      tables_not_accounted_for = tables_in_db - ACTIVERECORD_META_TABLES - processed_tables
+      unless tables_not_accounted_for.empty?
+        fail "Missing tables: #{tables_not_accounted_for.inspect}"
+      end
     end
 
     private
