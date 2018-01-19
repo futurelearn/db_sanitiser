@@ -15,6 +15,10 @@ module DbSanitiser
       run(Strategies::ValidateStrategy.new)
     end
 
+    def dry_run(io)
+      run(Strategies::DryRunStrategy.new(io))
+    end
+
     private
 
     def run(strategy)

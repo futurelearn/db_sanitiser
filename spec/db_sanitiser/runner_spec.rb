@@ -87,6 +87,39 @@ RSpec.describe DbSanitiser::Runner do
     end
   end
 
+  describe 'dry run' do
+    it "doesn't modify any tables" do
+      user = User.create!(name: 'Fred Flintstone', email: 'fred.flintstone@flintstones.com')
+      user_id = user.id
+      hobby = Hobby.create(user_id: user_id, hobby: 'Saying yabba dabba doo')
+      hobby_id = hobby.id
+      described_class.new(fixture_file('all_sanitised.rb')).dry_run(StringIO.new)
+      expect(User.first.attributes).to eq("id" => user_id, "name" => 'Fred Flintstone', "email" => 'fred.flintstone@flintstones.com')
+      expect(Hobby.first.attributes).to eq("id" => hobby_id, "user_id" => user_id, "hobby" => 'Saying yabba dabba doo')
+    end
+
+    it 'prints what columns will be sanitised' do
+      io = StringIO.new
+      described_class.new(fixture_file('query_sanitised_multiple.rb')).dry_run(io)
+      io.rewind
+      expect(io.read).to eq(<<~EOF)
+        Sanitise rows that match: SELECT "users".* FROM "users" WHERE "users"."name" = 'Fred Flintstone': `id` = id, `name` = "Barney Rubble", `email` = "barney.rubble@flintstones.com"
+        Sanitise rows that match: SELECT "users".* FROM "users" WHERE "users"."name" = 'Wilma Flintstone': `id` = id, `name` = "Betty Rubble", `email` = "betty.rubble@flintstones.com"
+        Sanitise rows that match: SELECT "hobbies".* FROM "hobbies": `id` = id, `user_id` = user_id, `hobby` = hobby
+      EOF
+    end
+
+    it 'prints tables that will be deleted' do
+      io = StringIO.new
+      described_class.new(fixture_file('delete_all.rb')).dry_run(io)
+      io.rewind
+      expect(io.read).to eq(<<~EOF)
+        Delete all rows from "users"
+        Delete all rows from "hobbies"
+      EOF
+    end
+  end
+
   def fixture_file(name)
     File.join(File.expand_path(File.dirname(__FILE__)), '..', 'support', 'fixtures', name)
   end
