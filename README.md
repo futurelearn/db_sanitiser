@@ -50,6 +50,35 @@ namespace :db_sanitiser do
 end
 ```
 
+Create a config file at the location you've chosen above with the declarations of the table to sanitise, like so:
+
+```
+sanitise_table 'table1' do
+  sanitise 'column1', string('Hi') # This will sanitise the column as a fixed string value
+  sanitise 'column2', 'NOW()' # This will sanitise the column by running the expression as part of the SQL update
+  ignore 'column3'
+end
+
+# You can sanitise the same table multiple times, and optionally pass a `where` clause to limit the rows the sanitisation will run against
+sanitise_table 'table1' do
+  where 'super_secret': true # the `where` clause will accept all ActiveRecord::Base#where arguments
+  sanitise 'column1', string('super secret')
+  sanitise 'column2', string('super secret')
+  sanitise 'column3', string('super secret')
+end
+
+# You can delete the contents of a table
+delete_all 'table2'
+```
+
+There is no method to completely ignore a table during the sanitisation process. This is because a column could be added that requires sanitisation and it would be silently ignored. To ignore a table, call `sanitise_table` with no calls to `sanitise`:
+
+```
+sanitise_table 'table_to_ignore' do
+  ignore 'column1', 'column2'
+end
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
