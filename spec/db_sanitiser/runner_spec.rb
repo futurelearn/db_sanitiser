@@ -50,27 +50,45 @@ RSpec.describe DbSanitiser::Runner do
       end
     end
 
+    it "raises an error if some tables aren't either sanitised or deleted" do
+      expect {
+        described_class.new(fixture_file('no_tables.rb')).sanitise
+      }.to raise_error(RuntimeError, /Missing tables: \["users", "hobbies"\]/)
+    end
+  end
+
+  describe 'validating the schema without sanitising' do
+    it "doesn't modify any tables" do
+      user = User.create!(name: 'Fred Flintstone', email: 'fred.flintstone@flintstones.com')
+      user_id = user.id
+      hobby = Hobby.create(user_id: user_id, hobby: 'Saying yabba dabba doo')
+      hobby_id = hobby.id
+      described_class.new(fixture_file('all_sanitised.rb')).validate
+      expect(User.first.attributes).to eq("id" => user_id, "name" => 'Fred Flintstone', "email" => 'fred.flintstone@flintstones.com')
+      expect(Hobby.first.attributes).to eq("id" => hobby_id, "user_id" => user_id, "hobby" => 'Saying yabba dabba doo')
+    end
+
     it 'raises an error if there is an unknown column in the table being sanitised' do
       expect {
-        described_class.new(fixture_file('missing_column.rb')).sanitise
+        described_class.new(fixture_file('missing_column.rb')).validate
       }.to raise_error(RuntimeError, /Missing columns for users: \["name", "email"\]/)
     end
 
     it "allows columns to be ignored if they shouldn't be sanitised" do
       expect {
-        described_class.new(fixture_file('ignored_columns.rb')).sanitise
+        described_class.new(fixture_file('ignored_columns.rb')).validate
       }.to_not raise_error
     end
 
     it "raises an error if there is an ignored column that doesn't exist" do
       expect {
-        described_class.new(fixture_file('unknown_columns.rb')).sanitise
+        described_class.new(fixture_file('unknown_columns.rb')).validate
       }.to raise_error(RuntimeError, /Unknown columns for users: \["age"\]/)
     end
 
     it "raises an error if some tables aren't either sanitised or deleted" do
       expect {
-        described_class.new(fixture_file('no_tables.rb')).sanitise
+        described_class.new(fixture_file('no_tables.rb')).validate
       }.to raise_error(RuntimeError, /Missing tables: \["users", "hobbies"\]/)
     end
   end
