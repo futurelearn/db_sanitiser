@@ -11,7 +11,7 @@ developers to remember to sanitise tables or columns as they are added.
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'db_sanitiser', git: 'https://github.com/futurelearn/db_sanitiser'
+gem 'db_sanitiser', git: 'git@github.com:Futurelearn/db_sanitiser'
 ```
 
 And then execute:
