@@ -2,6 +2,18 @@ require "db_sanitiser/version"
 require 'db_sanitiser/runner'
 
 module DbSanitiser
+  def self.enabled?
+    !!@enabled
+  end
+
+  def self.enable!
+    @enabled = true
+  end
+
+  def self.disable!
+    @enabled = false
+  end
+
   def self.sanitise(file_name)
     Runner.new(file_name).sanitise
   end

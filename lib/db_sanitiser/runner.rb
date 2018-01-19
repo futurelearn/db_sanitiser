@@ -4,6 +4,7 @@ require_relative 'strategies'
 module DbSanitiser
   class Runner
     def initialize(file_name)
+      raise "DbSanitiser is not enabled. Maybe you're in an environment you shouldn't be sanitising?" unless DbSanitiser.enabled?
       @file_name = file_name
     end
 

@@ -120,6 +120,18 @@ RSpec.describe DbSanitiser::Runner do
     end
   end
 
+  context 'when DbSanitiser is disabled' do
+    before do
+      DbSanitiser.disable!
+    end
+
+    it 'should not allow sanitisation' do
+      expect {
+        described_class.new(fixture_file('all_sanitised.rb')).sanitise
+      }.to raise_error(/DbSanitiser is not enabled/)
+    end
+  end
+
   def fixture_file(name)
     File.join(File.expand_path(File.dirname(__FILE__)), '..', 'support', 'fixtures', name)
   end
