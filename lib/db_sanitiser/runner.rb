@@ -5,16 +5,17 @@ module DbSanitiser
     end
 
     def sanitise
-      config = File.read(@file_name)
-      strategy = SanitiseStrategy.new
-      dsl = RootDsl.new(strategy)
-      dsl.instance_eval(config)
-      strategy.after_run(dsl.instance_variable_get('@table_names').to_a)
+      run(SanitiseStrategy.new)
     end
 
     def validate
+      run(ValidateStrategy.new)
+    end
+
+    private
+
+    def run(strategy)
       config = File.read(@file_name)
-      strategy = ValidateStrategy.new
       dsl = RootDsl.new(strategy)
       dsl.instance_eval(config)
       strategy.after_run(dsl.instance_variable_get('@table_names').to_a)
