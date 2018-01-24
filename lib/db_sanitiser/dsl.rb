@@ -24,13 +24,13 @@ module DbSanitiser
         @table_name = table_name
         @block = block
         @columns_to_sanitise = {}
-        @columns_to_ignore = []
+        @columns_to_allow = []
       end
 
       def _run(strategy)
         instance_eval(&@block)
 
-        strategy.sanitise_table(@table_name, @columns_to_sanitise, @where_query, @columns_to_ignore)
+        strategy.sanitise_table(@table_name, @columns_to_sanitise, @where_query, @columns_to_allow)
       end
 
       def string(value)
@@ -45,8 +45,8 @@ module DbSanitiser
         @where_query = query
       end
 
-      def ignore(*columns)
-        @columns_to_ignore += columns
+      def allow(*columns)
+        @columns_to_allow += columns
       end
     end
 

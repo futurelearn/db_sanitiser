@@ -3,9 +3,9 @@ module DbSanitiser
     class ValidateStrategy
       ACTIVERECORD_META_TABLES = %w(schema_migrations ar_internal_metadata)
 
-      def sanitise_table(table_name, columns_to_sanitise, where_query, ignored_columns)
+      def sanitise_table(table_name, columns_to_sanitise, where_query, allowed_columns)
         ar_class = active_record_class(table_name)
-        columns = columns_to_sanitise.keys + ignored_columns
+        columns = columns_to_sanitise.keys + allowed_columns
 
         validate_columns_are_accounted_for(ar_class, table_name, columns)
       end

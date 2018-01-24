@@ -3,8 +3,9 @@
 Sanitise a database to eliminate personal or sensitive information.
 
 The validation of the sanitisation is opinionated - it expects every table and
-column to either be sanitised or explicitly ignored. This removes the burden for
-developers to remember to sanitise tables or columns as they are added.
+column to either be sanitised or allowed to pass unsanitised. This removes the
+burden for developers to remember to sanitise tables or columns as they are
+added.
 
 ## Installation
 
@@ -64,7 +65,7 @@ Create a config file at the location you've chosen above with the declarations o
 sanitise_table 'table1' do
   sanitise 'column1', string('Hi') # This will sanitise the column as a fixed string value
   sanitise 'column2', 'NOW()' # This will sanitise the column by running the expression as part of the SQL update
-  ignore 'column3'
+  allow 'column3'
 end
 
 # You can sanitise the same table multiple times, and optionally pass a `where` clause to limit the rows the sanitisation will run against
@@ -79,11 +80,11 @@ end
 delete_all 'table2'
 ```
 
-There is no method to completely ignore a table during the sanitisation process. This is because a column could be added that requires sanitisation and it would be silently ignored. To ignore a table, call `sanitise_table` with no calls to `sanitise`:
+There is no method to completely allow a table to skip the sanitisation process. This is because a column could be added that requires sanitisation and the developer wouldn't be alerted. To allow a table to skip sanitisation, call `sanitise_table` with no calls to `sanitise`:
 
 ```
 sanitise_table 'table_to_ignore' do
-  ignore 'column1', 'column2'
+  allow 'column1', 'column2'
 end
 ```
 

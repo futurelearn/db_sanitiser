@@ -5,7 +5,7 @@ module DbSanitiser
         @io = io
       end
 
-      def sanitise_table(table_name, columns_to_sanitise, where_query, ignored_columns)
+      def sanitise_table(table_name, columns_to_sanitise, where_query, allowed_columns)
         update_values = columns_to_sanitise.to_a.map do |(key, value)|
           "`#{key}` = #{value}"
         end

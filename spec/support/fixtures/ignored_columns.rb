@@ -1,6 +1,6 @@
 sanitise_table 'users' do
   sanitise 'id', 'id + 1000'
-  ignore 'email', 'name'
+  allow 'email', 'name'
 end
 
 sanitise_table 'hobbies' do
