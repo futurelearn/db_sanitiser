@@ -2,6 +2,7 @@ module DbSanitiser
   module Strategies
     class SanitiseStrategy
       def sanitise_table(table_name, columns_to_sanitise, where_query, allowed_columns)
+        return if columns_to_sanitise.empty?
         update_values = columns_to_sanitise.to_a.map do |(key, value)|
           "`#{key}` = #{value}"
         end

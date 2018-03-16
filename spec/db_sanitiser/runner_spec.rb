@@ -49,6 +49,15 @@ RSpec.describe DbSanitiser::Runner do
         expect(Hobby.count).to eq(0)
       end
     end
+
+    describe 'allowing every column of a table' do
+      it 'can sanitise the same table multiple times' do
+        user = User.create!(name: 'Fred Flintstone', email: 'fred.flintstone@flintstones.com')
+
+        described_class.new(fixture_file('allow_entire_table.rb')).sanitise
+        expect(User.first.name).to eq('Fred Flintstone')
+      end
+    end
   end
 
   describe 'validating the schema without sanitising' do
