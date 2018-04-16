@@ -78,6 +78,12 @@ end
 
 # You can delete the contents of a table
 delete_all 'table2'
+
+# You can partially delete the contents of a table, explicitly allowing all columns for rows that won't be deleted
+partially_delete 'table3' do
+  where 'super_secret = true' # the `where` clause will accept all ActiveRecord::Base#where arguments
+  allow 'column1', 'column2'
+end
 ```
 
 There is no method to completely allow a table to skip the sanitisation process. This is because a column could be added that requires sanitisation and the developer wouldn't be alerted. To allow a table to skip sanitisation, call `sanitise_table` with no calls to `sanitise`:

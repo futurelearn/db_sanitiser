@@ -18,6 +18,10 @@ module DbSanitiser
         @io.puts("Delete all rows from \"#{table_name}\"")
       end
 
+      def partially_delete(table_name, where_query, allowed_columns)
+        @io.puts("Delete rows from \"#{table_name}\" that match: #{where_query}")
+      end
+
       def after_run(processed_tables)
       end
 

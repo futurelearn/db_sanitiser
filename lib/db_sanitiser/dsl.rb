@@ -17,6 +17,12 @@ module DbSanitiser
         dsl = DeleteAllDsl.new(table_name)
         dsl._run(@strategy)
       end
+
+      def partially_delete(table_name, &block)
+        @table_names.add(table_name)
+        dsl = DeletePartialDsl.new(table_name, &block)
+        dsl._run(@strategy)
+      end
     end
 
     class SanitiseDsl
@@ -57,6 +63,28 @@ module DbSanitiser
 
       def _run(strategy)
         strategy.delete_all(@table_name)
+      end
+    end
+
+    class DeletePartialDsl
+      def initialize(table_name, &block)
+        @table_name = table_name
+        @block = block
+        @columns_to_allow = []
+      end
+
+      def where(query)
+        @where_query = query
+      end
+
+      def allow(*columns)
+        @columns_to_allow += columns
+      end
+
+      def _run(strategy)
+        instance_eval(&@block)
+
+        strategy.partially_delete(@table_name, @where_query, @columns_to_allow)
       end
     end
   end

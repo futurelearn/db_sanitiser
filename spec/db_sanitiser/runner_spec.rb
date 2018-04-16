@@ -58,6 +58,17 @@ RSpec.describe DbSanitiser::Runner do
         expect(User.first.name).to eq('Fred Flintstone')
       end
     end
+
+    describe 'delete_where' do
+      it 'partially deletes a table' do
+        user = User.create!(name: 'Fred Flintstone', email: 'fred.flintstone@flintstones.com')
+        user = User.create!(name: 'Barney Rubble', email: 'barney.rubble@flintstones.com')
+
+        described_class.new(fixture_file('partially_delete.rb')).sanitise
+        expect(User.count).to eq(1)
+        expect(User.first.name).to eq('Fred Flintstone')
+      end
+    end
   end
 
   describe 'validating the schema without sanitising' do
@@ -94,6 +105,12 @@ RSpec.describe DbSanitiser::Runner do
         described_class.new(fixture_file('no_tables.rb')).validate
       }.to raise_error(RuntimeError, /Missing tables: \["users", "hobbies"\]/)
     end
+
+    it "raises an error if a partially deleted table doesn't allow all columns" do
+      expect {
+        described_class.new(fixture_file('partially_delete.rb')).validate
+      }.to raise_error(RuntimeError, /Missing columns for hobbies: \["id", "user_id", "hobby"\]/)
+    end
   end
 
   describe 'dry run' do
@@ -125,6 +142,16 @@ RSpec.describe DbSanitiser::Runner do
       expect(io.read).to eq(<<~EOF)
         Delete all rows from "users"
         Delete all rows from "hobbies"
+      EOF
+    end
+
+    it 'prints tables that will be partially deleted' do
+      io = StringIO.new
+      described_class.new(fixture_file('partially_delete.rb')).dry_run(io)
+      io.rewind
+      expect(io.read).to eq(<<~EOF)
+        Delete rows from "users" that match: name = "Barney Rubble"
+        Delete rows from "hobbies" that match: id > 0
       EOF
     end
   end

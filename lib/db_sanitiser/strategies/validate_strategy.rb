@@ -13,6 +13,12 @@ module DbSanitiser
       def delete_all(table_name)
       end
 
+      def partially_delete(table_name, where_query, allowed_columns)
+        ar_class = active_record_class(table_name)
+
+        validate_columns_are_accounted_for(ar_class, table_name, allowed_columns)
+      end
+
       def after_run(processed_tables)
         tables_in_db = ActiveRecord::Base.connection.tables
         tables_not_accounted_for = tables_in_db - ACTIVERECORD_META_TABLES - processed_tables

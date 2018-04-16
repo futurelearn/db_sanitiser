@@ -15,6 +15,10 @@ module DbSanitiser
         active_record_class(table_name).delete_all
       end
 
+      def partially_delete(table_name, where_query, allowed_columns)
+        active_record_class(table_name).where(where_query).delete_all
+      end
+
       def after_run(processed_tables)
       end
 
