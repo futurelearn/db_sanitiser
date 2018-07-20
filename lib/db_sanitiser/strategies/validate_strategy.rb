@@ -23,7 +23,7 @@ module DbSanitiser
         tables_in_db = ActiveRecord::Base.connection.tables
         tables_not_accounted_for = tables_in_db - ACTIVERECORD_META_TABLES - processed_tables
         unless tables_not_accounted_for.empty?
-          fail "Missing tables: #{tables_not_accounted_for.inspect}"
+          fail "Please add db_sanitiser config for these tables: #{tables_not_accounted_for.inspect}"
         end
       end
 
@@ -36,12 +36,12 @@ module DbSanitiser
       def validate_columns_are_accounted_for(active_record_class, table_name, columns)
         columns_not_accounted_for = active_record_class.column_names - columns
         unless columns_not_accounted_for.empty?
-          fail "Missing columns for #{table_name}: #{columns_not_accounted_for.inspect}"
+          fail "Please add db_sanitiser config for these columns in '#{table_name}': #{columns_not_accounted_for.inspect}"
         end
 
         unknown_columns = columns - active_record_class.column_names
         unless unknown_columns.empty?
-          fail "Unknown columns for #{table_name}: #{unknown_columns.inspect}"
+          fail "You have db_sanitiser config for these columns in '#{table_name}', but they don't exist in the database: #{unknown_columns.inspect}"
         end
       end
     end

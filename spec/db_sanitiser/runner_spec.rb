@@ -85,7 +85,7 @@ RSpec.describe DbSanitiser::Runner do
     it 'raises an error if there is an unknown column in the table being sanitised' do
       expect {
         described_class.new(fixture_file('missing_column.rb')).validate
-      }.to raise_error(RuntimeError, /Missing columns for users: \["name", "email"\]/)
+      }.to raise_error(RuntimeError, /Please add db_sanitiser config for these columns in 'users': \["name", "email"\]/)
     end
 
     it "allows columns to be ignored if they shouldn't be sanitised" do
@@ -97,19 +97,19 @@ RSpec.describe DbSanitiser::Runner do
     it "raises an error if there is an ignored column that doesn't exist" do
       expect {
         described_class.new(fixture_file('unknown_columns.rb')).validate
-      }.to raise_error(RuntimeError, /Unknown columns for users: \["age"\]/)
+      }.to raise_error(RuntimeError, /You have db_sanitiser config for these columns in 'users', but they don't exist in the database: \["age"\]/)
     end
 
     it "raises an error if some tables aren't either sanitised or deleted" do
       expect {
         described_class.new(fixture_file('no_tables.rb')).validate
-      }.to raise_error(RuntimeError, /Missing tables: \["users", "hobbies"\]/)
+      }.to raise_error(RuntimeError, /Please add db_sanitiser config for these tables: \["users", "hobbies"\]/)
     end
 
     it "raises an error if a partially deleted table doesn't allow all columns" do
       expect {
         described_class.new(fixture_file('partially_delete.rb')).validate
-      }.to raise_error(RuntimeError, /Missing columns for hobbies: \["id", "user_id", "hobby"\]/)
+      }.to raise_error(RuntimeError, /Please add db_sanitiser config for these columns in 'hobbies': \["id", "user_id", "hobby"\]/)
     end
   end
 
