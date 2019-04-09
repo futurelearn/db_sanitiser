@@ -5,13 +5,16 @@ module DbSanitiser
         @io = io
       end
 
-      def sanitise_table(table_name, columns_to_sanitise, where_query, allowed_columns)
+      def sanitise_table(table_name, columns_to_sanitise, where_query, allowed_columns, skip_unique_key_checks, skip_foreign_key_checks)
         update_values = columns_to_sanitise.to_a.map do |(key, value)|
           "`#{key}` = #{value}"
         end
         scope = active_record_class(table_name).all
         scope = scope.where(where_query) if where_query
+        @io.puts("Disable unique key checks") if skip_unique_key_checks
+        @io.puts("Disable foreign key checks") if skip_foreign_key_checks
         @io.puts("Sanitise rows that match: #{scope.to_sql}: #{update_values.join(', ')}")
+        @io.puts("Re-enable key checks") if skip_unique_key_checks || skip_foreign_key_checks
       end
 
       def delete_all(table_name)

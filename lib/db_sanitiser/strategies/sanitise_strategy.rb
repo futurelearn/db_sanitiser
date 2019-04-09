@@ -1,14 +1,17 @@
 module DbSanitiser
   module Strategies
     class SanitiseStrategy
-      def sanitise_table(table_name, columns_to_sanitise, where_query, allowed_columns)
+      def sanitise_table(table_name, columns_to_sanitise, where_query, allowed_columns, skip_unique_key_checks, skip_foreign_key_checks)
         return if columns_to_sanitise.empty?
+        set_mysql_options(skip_unique_key_checks, skip_foreign_key_checks)
         update_values = columns_to_sanitise.to_a.map do |(key, value)|
           "`#{key}` = #{value}"
         end
         scope = active_record_class(table_name)
         scope = scope.where(where_query) if where_query
         scope.update_all(update_values.join(', '))
+      ensure
+        reset_mysql_options
       end
 
       def delete_all(table_name)
@@ -23,6 +26,27 @@ module DbSanitiser
       end
 
       private
+
+      def set_mysql_options(skip_unique_key_checks, skip_foreign_key_checks)
+        return unless supports_skip_key_checks?
+
+        connection.execute(%(SET unique_checks=0)) if skip_unique_key_checks
+        connection.execute(%(SET foreign_key_checks=0)) if skip_foreign_key_checks
+      end
+
+      def reset_mysql_options
+        return unless supports_skip_key_checks?
+
+        connection.execute(%(SET foreign_key_checks=1, unique_checks=1))
+      end
+
+      def supports_skip_key_checks?
+        ActiveRecord::Base.connection_config[:adapter] == 'mysql2'
+      end
+
+      def connection
+        ActiveRecord::Base.connection
+      end
 
       def active_record_class(table_name)
         Class.new(ActiveRecord::Base) { self.table_name = table_name }

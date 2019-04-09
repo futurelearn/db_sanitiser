@@ -36,11 +36,19 @@ module DbSanitiser
       def _run(strategy)
         instance_eval(&@block)
 
-        strategy.sanitise_table(@table_name, @columns_to_sanitise, @where_query, @columns_to_allow)
+        strategy.sanitise_table(@table_name, @columns_to_sanitise, @where_query, @columns_to_allow, @skip_unique_key_checks, @skip_foreign_key_checks)
       end
 
       def string(value)
         "\"#{value}\""
+      end
+
+      def skip_unique_key_checks
+        @skip_unique_key_checks = true
+      end
+
+      def skip_foreign_key_checks
+        @skip_foreign_key_checks = true
       end
 
       def sanitise(name, sanitised_value)
