@@ -12,6 +12,12 @@ module DbSanitiser
         dsl._run(@strategy)
       end
 
+      def truncate(table_name)
+        @table_names.add(table_name)
+        dsl = TruncateDsl.new(table_name)
+        dsl._run(@strategy)
+      end
+
       def delete_all(table_name)
         @table_names.add(table_name)
         dsl = DeleteAllDsl.new(table_name)
@@ -66,6 +72,16 @@ module DbSanitiser
 
       def allow(*columns)
         @columns_to_allow += columns
+      end
+    end
+
+    class TruncateDsl
+      def initialize(table_name)
+        @table_name = table_name
+      end
+
+      def _run(strategy)
+        strategy.truncate(@table_name)
       end
     end
 

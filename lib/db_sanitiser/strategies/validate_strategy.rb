@@ -11,6 +11,9 @@ module DbSanitiser
         validate_indexes_exist(table_name, indexes_to_drop_and_create)
       end
 
+      def truncate(table_name)
+      end
+
       def delete_all(table_name)
       end
 

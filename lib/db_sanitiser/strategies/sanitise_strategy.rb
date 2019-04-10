@@ -17,8 +17,12 @@ module DbSanitiser
         reset_mysql_options
       end
 
-      def delete_all(table_name)
+      def truncate(table_name)
         ActiveRecord::Base.connection.truncate(table_name)
+      end
+
+      def delete_all(table_name)
+        active_record_class(table_name).delete_all
       end
 
       def partially_delete(table_name, where_query, allowed_columns)

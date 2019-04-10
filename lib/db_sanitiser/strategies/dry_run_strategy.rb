@@ -19,6 +19,10 @@ module DbSanitiser
         @io.puts("Re-enable key checks") if skip_unique_key_checks || skip_foreign_key_checks
       end
 
+      def truncate(table_name)
+        @io.puts("Truncate table \"#{table_name}\"")
+      end
+
       def delete_all(table_name)
         @io.puts("Delete all rows from \"#{table_name}\"")
       end

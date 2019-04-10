@@ -59,6 +59,18 @@ RSpec.describe DbSanitiser::Runner do
       end
     end
 
+    describe 'truncating tables' do
+      it 'removes the contents of the table' do
+        user = User.create!(name: 'Fred Flintstone', email: 'fred.flintstone@flintstones.com')
+        hobby = Hobby.create(user_id: 1, hobby: 'Saying yabba dabba doo')
+
+        described_class.new(fixture_file('truncate.rb')).sanitise
+
+        expect(User.count).to eq(0)
+        expect(Hobby.count).to eq(0)
+      end
+    end
+
     describe 'allowing every column of a table' do
       it 'can sanitise the same table multiple times' do
         user = User.create!(name: 'Fred Flintstone', email: 'fred.flintstone@flintstones.com')

@@ -1,0 +1,2 @@
+truncate 'users'
+truncate 'hobbies'
