@@ -1,9 +1,22 @@
 require "bundler/setup"
 require "db_sanitiser"
+require 'pathname'
+require 'yaml'
+require 'mysql2'
 require 'active_record'
 require 'database_cleaner'
 
 raise "By default DbSanitiser should not be enabled" if DbSanitiser.enabled?
+
+include ActiveRecord::Tasks
+
+DB_DIR = Pathname.new(__FILE__).dirname.expand_path.join('db')
+DB_CONFIG = YAML.load_file(DB_DIR.join('config.yml').to_s)
+
+ActiveRecord::Base.configurations = DB_CONFIG
+DatabaseTasks.database_configuration = DB_CONFIG
+DatabaseTasks.db_dir = DB_DIR.to_s
+DatabaseTasks.env = 'test'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -17,9 +30,10 @@ RSpec.configure do |config|
   end
 
   config.before(:suite) do
-    ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
+    DatabaseTasks.drop_current
+    DatabaseTasks.create_current
     ActiveRecord::Schema.verbose = false
-    require_relative 'db/schema'
+    DatabaseTasks.load_schema_current
     DatabaseCleaner.strategy = :truncation
   end
 

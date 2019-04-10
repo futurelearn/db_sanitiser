@@ -103,7 +103,7 @@ RSpec.describe DbSanitiser::Runner do
     it "raises an error if some tables aren't either sanitised or deleted" do
       expect {
         described_class.new(fixture_file('no_tables.rb')).validate
-      }.to raise_error(RuntimeError, /Please add db_sanitiser config for these tables: \["users", "hobbies"\]/)
+      }.to raise_error(RuntimeError, /Please add db_sanitiser config for these tables: \["hobbies", "users"\]/)
     end
 
     it "raises an error if a partially deleted table doesn't allow all columns" do
@@ -129,9 +129,9 @@ RSpec.describe DbSanitiser::Runner do
       described_class.new(fixture_file('query_sanitised_multiple.rb')).dry_run(io)
       io.rewind
       expect(io.read).to eq(<<~EOF)
-        Sanitise rows that match: SELECT "users".* FROM "users" WHERE "users"."name" = 'Fred Flintstone': `id` = id, `name` = "Barney Rubble", `email` = "barney.rubble@flintstones.com"
-        Sanitise rows that match: SELECT "users".* FROM "users" WHERE "users"."name" = 'Wilma Flintstone': `id` = id, `name` = "Betty Rubble", `email` = "betty.rubble@flintstones.com"
-        Sanitise rows that match: SELECT "hobbies".* FROM "hobbies": `id` = id, `user_id` = user_id, `hobby` = hobby
+        Sanitise rows that match: SELECT `users`.* FROM `users` WHERE `users`.`name` = 'Fred Flintstone': `id` = id, `name` = "Barney Rubble", `email` = "barney.rubble@flintstones.com"
+        Sanitise rows that match: SELECT `users`.* FROM `users` WHERE `users`.`name` = 'Wilma Flintstone': `id` = id, `name` = "Betty Rubble", `email` = "betty.rubble@flintstones.com"
+        Sanitise rows that match: SELECT `hobbies`.* FROM `hobbies`: `id` = id, `user_id` = user_id, `hobby` = hobby
       EOF
     end
 
