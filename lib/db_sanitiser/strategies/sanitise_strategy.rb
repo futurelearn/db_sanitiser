@@ -15,7 +15,7 @@ module DbSanitiser
       end
 
       def delete_all(table_name)
-        active_record_class(table_name).delete_all
+        ActiveRecord::Base.connection.truncate(table_name)
       end
 
       def partially_delete(table_name, where_query, allowed_columns)
