@@ -120,6 +120,12 @@ RSpec.describe DbSanitiser::Runner do
         described_class.new(fixture_file('partially_delete.rb')).validate
       }.to raise_error(RuntimeError, /Please add db_sanitiser config for these columns in 'hobbies': \["id", "user_id", "hobby"\]/)
     end
+
+    it "raises an error if a drop_and_create_index entry doesn't match the schema" do
+      expect {
+        described_class.new(fixture_file('drop_and_create_wrong_index.rb')).validate
+      }.to raise_error RuntimeError, a_string_including("The index `index_users_on_email` was set to be dropped and recreated, but does not match any index in the schema")
+    end
   end
 
   describe 'dry run' do
