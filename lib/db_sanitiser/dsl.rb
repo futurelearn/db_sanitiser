@@ -31,12 +31,13 @@ module DbSanitiser
         @block = block
         @columns_to_sanitise = {}
         @columns_to_allow = []
+        @indexes_to_drop_and_create = []
       end
 
       def _run(strategy)
         instance_eval(&@block)
 
-        strategy.sanitise_table(@table_name, @columns_to_sanitise, @where_query, @columns_to_allow, @skip_unique_key_checks, @skip_foreign_key_checks)
+        strategy.sanitise_table(@table_name, @columns_to_sanitise, @where_query, @columns_to_allow, @skip_unique_key_checks, @skip_foreign_key_checks, @indexes_to_drop_and_create)
       end
 
       def string(value)
@@ -49,6 +50,10 @@ module DbSanitiser
 
       def skip_foreign_key_checks
         @skip_foreign_key_checks = true
+      end
+
+      def drop_and_create_index(name, columns, options={})
+        @indexes_to_drop_and_create << [name, columns, options]
       end
 
       def sanitise(name, sanitised_value)

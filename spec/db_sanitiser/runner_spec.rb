@@ -36,6 +36,15 @@ RSpec.describe DbSanitiser::Runner do
         expect(User.first.name).to eq('Barney Rubble')
         expect(User.last.name).to eq('Betty Rubble')
       end
+
+      it 'can drop and recreate an index' do
+        user = User.create!(name: 'Fred Flintstone', email: 'fred.flintstone@flintstones.com')
+        user2 = User.create!(name: 'Wilma Flintstone', email: 'wilma.flintstone@flintstones.com')
+
+        described_class.new(fixture_file('drop_and_create_index.rb')).sanitise
+        expect(User.first.email).to eq('barney.rubble@flintstones.com')
+        expect(User.last.email).to eq('barney.rubble@flintstones.com')
+      end
     end
 
     describe 'deleting contents of tables' do
@@ -152,6 +161,18 @@ RSpec.describe DbSanitiser::Runner do
       expect(io.read).to eq(<<~EOF)
         Delete rows from "users" that match: name = "Barney Rubble"
         Delete rows from "hobbies" that match: id > 0
+      EOF
+    end
+
+    it 'prints indexes that will be dropped and recreated' do
+      io = StringIO.new
+      described_class.new(fixture_file('drop_and_create_index.rb')).dry_run(io)
+      io.rewind
+      expect(io.read).to eq(<<~EOF)
+        Drop indexes: index_users_on_email
+        Sanitise rows that match: SELECT `users`.* FROM `users`: `email` = "barney.rubble@flintstones.com"
+        Create indexes: index_users_on_email
+        Delete all rows from "hobbies"
       EOF
     end
   end
