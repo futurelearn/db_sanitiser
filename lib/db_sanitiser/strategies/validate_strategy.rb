@@ -3,11 +3,12 @@ module DbSanitiser
     class ValidateStrategy
       ACTIVERECORD_META_TABLES = %w(schema_migrations ar_internal_metadata)
 
-      def sanitise_table(table_name, columns_to_sanitise, where_query, allowed_columns, skip_unique_key_checks, skip_foreign_key_checks)
+      def sanitise_table(table_name, columns_to_sanitise, where_query, allowed_columns, skip_unique_key_checks, skip_foreign_key_checks, indexes_to_drop_and_create)
         ar_class = active_record_class(table_name)
         columns = columns_to_sanitise.keys + allowed_columns
 
         validate_columns_are_accounted_for(ar_class, table_name, columns)
+        validate_indexes_exist(table_name, indexes_to_drop_and_create)
       end
 
       def delete_all(table_name)
@@ -42,6 +43,14 @@ module DbSanitiser
         unknown_columns = columns - active_record_class.column_names
         unless unknown_columns.empty?
           fail "You have db_sanitiser config for these columns in '#{table_name}', but they don't exist in the database: #{unknown_columns.inspect}"
+        end
+      end
+
+      def validate_indexes_exist(table_name, indexes_to_drop_and_create)
+        indexes_to_drop_and_create.each do |index_name, columns, options|
+          unless ActiveRecord::Base.connection.index_exists?(table_name, columns, options.merge(name: index_name))
+            fail "The index `#{index_name}` was set to be dropped and recreated, but does not match any index in the schema"
+          end
         end
       end
     end

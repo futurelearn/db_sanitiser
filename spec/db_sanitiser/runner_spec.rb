@@ -36,6 +36,15 @@ RSpec.describe DbSanitiser::Runner do
         expect(User.first.name).to eq('Barney Rubble')
         expect(User.last.name).to eq('Betty Rubble')
       end
+
+      it 'can drop and recreate an index' do
+        user = User.create!(name: 'Fred Flintstone', email: 'fred.flintstone@flintstones.com')
+        user2 = User.create!(name: 'Wilma Flintstone', email: 'wilma.flintstone@flintstones.com')
+
+        described_class.new(fixture_file('drop_and_create_index.rb')).sanitise
+        expect(User.first.email).to eq('barney.rubble@flintstones.com')
+        expect(User.last.email).to eq('barney.rubble@flintstones.com')
+      end
     end
 
     describe 'deleting contents of tables' do
@@ -111,6 +120,12 @@ RSpec.describe DbSanitiser::Runner do
         described_class.new(fixture_file('partially_delete.rb')).validate
       }.to raise_error(RuntimeError, /Please add db_sanitiser config for these columns in 'hobbies': \["id", "user_id", "hobby"\]/)
     end
+
+    it "raises an error if a drop_and_create_index entry doesn't match the schema" do
+      expect {
+        described_class.new(fixture_file('drop_and_create_wrong_index.rb')).validate
+      }.to raise_error RuntimeError, a_string_including("The index `index_users_on_email` was set to be dropped and recreated, but does not match any index in the schema")
+    end
   end
 
   describe 'dry run' do
@@ -152,6 +167,18 @@ RSpec.describe DbSanitiser::Runner do
       expect(io.read).to eq(<<~EOF)
         Delete rows from "users" that match: name = "Barney Rubble"
         Delete rows from "hobbies" that match: id > 0
+      EOF
+    end
+
+    it 'prints indexes that will be dropped and recreated' do
+      io = StringIO.new
+      described_class.new(fixture_file('drop_and_create_index.rb')).dry_run(io)
+      io.rewind
+      expect(io.read).to eq(<<~EOF)
+        Drop indexes: index_users_on_email
+        Sanitise rows that match: SELECT `users`.* FROM `users`: `email` = "barney.rubble@flintstones.com"
+        Create indexes: index_users_on_email
+        Delete all rows from "hobbies"
       EOF
     end
   end

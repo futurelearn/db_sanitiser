@@ -5,7 +5,7 @@ module DbSanitiser
         @io = io
       end
 
-      def sanitise_table(table_name, columns_to_sanitise, where_query, allowed_columns, skip_unique_key_checks, skip_foreign_key_checks)
+      def sanitise_table(table_name, columns_to_sanitise, where_query, allowed_columns, skip_unique_key_checks, skip_foreign_key_checks, indexes_to_drop_and_create)
         update_values = columns_to_sanitise.to_a.map do |(key, value)|
           "`#{key}` = #{value}"
         end
@@ -13,7 +13,9 @@ module DbSanitiser
         scope = scope.where(where_query) if where_query
         @io.puts("Disable unique key checks") if skip_unique_key_checks
         @io.puts("Disable foreign key checks") if skip_foreign_key_checks
+        @io.puts("Drop indexes: #{indexes_to_drop_and_create.map(&:first).join(", ")}") if indexes_to_drop_and_create.any?
         @io.puts("Sanitise rows that match: #{scope.to_sql}: #{update_values.join(', ')}")
+        @io.puts("Create indexes: #{indexes_to_drop_and_create.map(&:first).join(", ")}") if indexes_to_drop_and_create.any?
         @io.puts("Re-enable key checks") if skip_unique_key_checks || skip_foreign_key_checks
       end
 
