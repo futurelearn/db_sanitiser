@@ -13,9 +13,9 @@ module DbSanitiser
         scope = scope.where(where_query) if where_query
         @io.puts("Disable unique key checks") if skip_unique_key_checks
         @io.puts("Disable foreign key checks") if skip_foreign_key_checks
-        @io.puts("Drop indexes: #{indexes_to_drop_and_create.map(&:first).join(", ")}") if indexes_to_drop_and_create.any?
+        @io.puts("Drop indexes: #{indexes_to_drop_and_create.join(", ")}") if indexes_to_drop_and_create.any?
         @io.puts("Sanitise rows that match: #{scope.to_sql}: #{update_values.join(', ')}")
-        @io.puts("Create indexes: #{indexes_to_drop_and_create.map(&:first).join(", ")}") if indexes_to_drop_and_create.any?
+        @io.puts("Create indexes: #{indexes_to_drop_and_create.join(", ")}") if indexes_to_drop_and_create.any?
         @io.puts("Re-enable key checks") if skip_unique_key_checks || skip_foreign_key_checks
       end
 

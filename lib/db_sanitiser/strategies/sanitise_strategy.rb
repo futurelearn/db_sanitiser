@@ -5,14 +5,14 @@ module DbSanitiser
         return if columns_to_sanitise.empty?
 
         set_mysql_options(skip_unique_key_checks, skip_foreign_key_checks)
-        drop_indexes(table_name, indexes_to_drop_and_create)
-        update_values = columns_to_sanitise.to_a.map do |(key, value)|
-          "`#{key}` = #{value}"
+        without_indexes(table_name, indexes_to_drop_and_create) do
+          update_values = columns_to_sanitise.to_a.map do |(key, value)|
+            "`#{key}` = #{value}"
+          end
+          scope = active_record_class(table_name)
+          scope = scope.where(where_query) if where_query
+          scope.update_all(update_values.join(', '))
         end
-        scope = active_record_class(table_name)
-        scope = scope.where(where_query) if where_query
-        scope.update_all(update_values.join(', '))
-        create_indexes(table_name, indexes_to_drop_and_create)
       ensure
         reset_mysql_options
       end
@@ -34,16 +34,31 @@ module DbSanitiser
 
       private
 
-      def drop_indexes(table_name, indexes_to_drop_and_create)
-        indexes_to_drop_and_create.each do |index_name, _, _|
-          connection.remove_index(table_name, name: index_name)
+      def without_indexes(table_name, indexes_to_drop_and_create)
+        return yield if indexes_to_drop_and_create.empty?
+
+        indexes = indexes_to_drop_and_create.map do |index_name|
+          connection.indexes(table_name).detect { |i| i.name == index_name }
+        end
+
+        indexes.each do |index|
+          connection.remove_index(table_name, name: index.name)
+        end
+
+        yield
+
+        indexes.each do |index|
+          connection.add_index(table_name, index.columns, index_options(index))
         end
       end
 
-      def create_indexes(table_name, indexes_to_drop_and_create)
-        indexes_to_drop_and_create.each do |index_name, columns, options|
-          connection.add_index(table_name, columns, options.merge(name: index_name))
-        end
+      def index_options(index)
+        {
+          length: index.lengths,
+          name: index.name,
+          order: index.orders,
+          unique: index.unique
+        }
       end
 
       def set_mysql_options(skip_unique_key_checks, skip_foreign_key_checks)

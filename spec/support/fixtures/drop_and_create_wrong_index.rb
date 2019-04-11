@@ -1,5 +1,5 @@
 sanitise_table 'users' do
-  drop_and_create_index 'index_users_on_email', 'email', unique: true
+  drop_and_create_index 'index_users_on_edonkey'
 
   sanitise 'email', "CONCAT('user-', id, '@example.com')"
 

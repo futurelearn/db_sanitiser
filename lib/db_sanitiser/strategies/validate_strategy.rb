@@ -50,8 +50,8 @@ module DbSanitiser
       end
 
       def validate_indexes_exist(table_name, indexes_to_drop_and_create)
-        indexes_to_drop_and_create.each do |index_name, columns, options|
-          unless ActiveRecord::Base.connection.index_exists?(table_name, columns, options.merge(name: index_name))
+        indexes_to_drop_and_create.each do |index_name|
+          unless ActiveRecord::Base.connection.indexes(table_name).detect { |i| i.name == index_name }
             fail "The index `#{index_name}` was set to be dropped and recreated, but does not match any index in the schema"
           end
         end

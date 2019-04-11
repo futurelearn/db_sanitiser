@@ -58,8 +58,8 @@ module DbSanitiser
         @skip_foreign_key_checks = true
       end
 
-      def drop_and_create_index(name, columns, options={})
-        @indexes_to_drop_and_create << [name, columns, options]
+      def drop_and_create_index(name)
+        @indexes_to_drop_and_create << name
       end
 
       def sanitise(name, sanitised_value)

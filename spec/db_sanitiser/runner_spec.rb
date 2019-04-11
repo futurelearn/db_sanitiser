@@ -136,7 +136,7 @@ RSpec.describe DbSanitiser::Runner do
     it "raises an error if a drop_and_create_index entry doesn't match the schema" do
       expect {
         described_class.new(fixture_file('drop_and_create_wrong_index.rb')).validate
-      }.to raise_error RuntimeError, a_string_including("The index `index_users_on_email` was set to be dropped and recreated, but does not match any index in the schema")
+      }.to raise_error RuntimeError, a_string_including("The index `index_users_on_edonkey` was set to be dropped and recreated, but does not match any index in the schema")
     end
   end
 

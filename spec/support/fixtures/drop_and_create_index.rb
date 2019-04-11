@@ -1,5 +1,5 @@
 sanitise_table 'users' do
-  drop_and_create_index 'index_users_on_email', 'email'
+  drop_and_create_index 'index_users_on_email'
 
   sanitise 'email', string('barney.rubble@flintstones.com')
 
