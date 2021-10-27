@@ -27,7 +27,7 @@ GEM
       concurrent-ruby (~> 1.0)
     method_source (0.9.0)
     minitest (5.14.4)
-    mysql2 (0.4.10)
+    mysql2 (0.5.3)
     pry (0.11.3)
       coderay (~> 1.1.0)
       method_source (~> 0.9.0)
@@ -56,7 +56,7 @@ DEPENDENCIES
   bundler (~> 1.16)
   database_cleaner
   db_sanitiser!
-  mysql2 (< 0.5)
+  mysql2 (~> 0.5)
   pry
   rake (~> 10.0)
   rspec (~> 3.0)
