@@ -75,11 +75,7 @@ module DbSanitiser
       end
 
       def supports_skip_key_checks?
-        if ActiveRecord::Base.respond_to?(:connection_db_config)
-          ActiveRecord::Base.connection_db_config.adapter == 'mysql2'
-        else
-          ActiveRecord::Base.connection_config[:adapter] == 'mysql2'
-        end
+        ActiveRecord::Base.connection_db_config.adapter == 'mysql2'
       end
 
       def connection
