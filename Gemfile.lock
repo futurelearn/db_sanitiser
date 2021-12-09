@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    db_sanitiser (0.1.1)
+    db_sanitiser (0.1.2)
       activerecord (~> 6.1.4)
 
 GEM
