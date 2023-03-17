@@ -16,7 +16,7 @@ DB_CONFIG = YAML.load_file(DB_DIR.join('config.yml').to_s)
 ActiveRecord::Base.configurations = DB_CONFIG
 DatabaseTasks.database_configuration = DB_CONFIG
 DatabaseTasks.db_dir = DB_DIR.to_s
-DatabaseTasks.env = 'test'
+DatabaseTasks.env = ENV['CI'] ? 'ci' : 'test'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

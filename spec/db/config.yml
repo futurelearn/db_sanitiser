@@ -1,4 +1,4 @@
-test:
+defaults: &defaults
   database: db_sanitiser_test
   adapter: mysql2
   reconnect: false
@@ -9,3 +9,10 @@ test:
   port: 3306
   encoding: utf8
   collation: utf8_unicode_ci
+
+test:
+  <<: *defaults
+
+ci:
+  <<: *defaults
+  password: example
