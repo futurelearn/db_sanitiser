@@ -48,7 +48,7 @@ module DbSanitiser
         yield
 
         indexes.each do |index|
-          connection.add_index(table_name, index.columns, index_options(index))
+          connection.add_index(table_name, index.columns, **index_options(index))
         end
       end
 
